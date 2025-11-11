@@ -11,6 +11,7 @@ import { signinDTO, TokenDto } from './auth-DTO/auth.dto';
 import { JwtService } from '@nestjs/jwt';
 import jwtConfig from './config/jwt.config';
 import { ConfigType } from '@nestjs/config';
+import { access } from 'fs';
 
 @Injectable()
 export class AuthService {
@@ -63,6 +64,9 @@ export class AuthService {
       username: user.user_name,
       role: user.role ,
     };
+
+    console.log('SIGN role:', user.role);
+
     const Access_token =
       user.role === 'admin'
         ? await this.jwtservice.sign(payload, {
@@ -73,6 +77,8 @@ export class AuthService {
             secret: this.jwtConfiguration.user.access_secret,
             expiresIn: Number(this.jwtConfiguration.expires.access),
           });
+
+         
 
     const Refresh_token =user.role==='admin'?
     
@@ -86,7 +92,8 @@ export class AuthService {
       expiresIn: Number(this.jwtConfiguration.expires.refresh),
     })
 
-   
+ 
+console.log('secret',this.jwtConfiguration.admin.access_secret);
 
     return { Access_token: Access_token, Refresh_token: Refresh_token };
   }

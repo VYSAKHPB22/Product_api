@@ -15,7 +15,7 @@ import { ProductsService } from './products.service';
 import { ApiBearerAuth, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { CreateProductDto } from './Dto/product.dto';
 import { JwtAdminGuard } from 'src/auth/gaurds/jwt.admin.gaurd';
-@ApiTags('products')
+@ApiTags('Admin-products')
 @Controller()
 @UseGuards(JwtAdminGuard)
 export class ProductsController {
@@ -44,6 +44,7 @@ export class ProductsController {
      @ApiBearerAuth('access token')
   async findAll():Promise<any> {
     
+
     try {
       const result= await this.productsService.findAll();
       return{

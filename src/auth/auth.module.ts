@@ -8,6 +8,7 @@ import { JwtModule } from '@nestjs/jwt';
 import jwtConfig from './config/jwt.config';
 import { JwtStrategy } from './statergy/jwt_statergy';
 import { adminUserSchema } from 'src/Entity/admin-users.schema';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports:[
@@ -16,7 +17,7 @@ import { adminUserSchema } from 'src/Entity/admin-users.schema';
       {name:'admin-user',schema:adminUserSchema}
       
     ]),
-
+  PassportModule.register({ defaultStrategy: 'jwt' }),
    JwtModule.registerAsync({
       inject: [jwtConfig.KEY],
       useFactory: (jwtConfiguration: ConfigType<typeof jwtConfig>) => ({

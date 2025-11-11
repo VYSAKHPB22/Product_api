@@ -9,7 +9,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register-user')
-  @ApiOperation({ summary: 'registration of the main user in db' })
+  @ApiOperation({ summary: 'registration of the main user in db (Roles:[admin,user] only)' })
   async registeruser(@Body(ValidationPipe) registerationDTO: registrationDTO): Promise<any> {
     try {
       const result = await this.authService.userRegistration(registerationDTO);

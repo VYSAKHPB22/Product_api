@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -8,15 +9,20 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { signinDTO, TokenDto } from './auth-DTO/auth.dto';
 import { JwtService } from '@nestjs/jwt';
+import jwtConfig from './config/jwt.config';
+import { ConfigType } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel('user') private readonly usermodel: Model<any>,
      @InjectModel('admin-user') private readonly adminUsermodel: Model<any>,
+     @Inject(jwtConfig.KEY)
+    private jwtConfiguration: ConfigType<typeof jwtConfig>,
     private jwtservice: JwtService,
   ) {}
 
+  //user registration
   async userRegistration(registrationdto): Promise<any> {
     const { user_name, email, phone_number, password,role } = registrationdto;
       const model = role === 'user' ? this.usermodel : this.adminUsermodel;
@@ -35,6 +41,7 @@ export class AuthService {
     return userDetails;
   }
 
+  //user signin
   async usersignin(signindto: signinDTO) {
     const { user_name, password,role } = signindto;
       const model = role === 'user' ? this.usermodel : this.adminUsermodel;
@@ -49,7 +56,7 @@ export class AuthService {
       throw new UnauthorizedException('invalid details');
     }
 
-    console.log(user)
+  
 
     const payload = {
       sub: user._id,
@@ -59,24 +66,24 @@ export class AuthService {
     const Access_token =
       user.role === 'admin'
         ? await this.jwtservice.sign(payload, {
-            secret: process.env.JWT_ADMIN_ACCESS_SECRET_KEY,
-            expiresIn: Number(process.env.JWT_ACCESS_EXPIRY),
+            secret: this.jwtConfiguration.admin.access_secret,
+            expiresIn: Number(this.jwtConfiguration.expires.access),
           })
         : await this.jwtservice.sign(payload, {
-            secret: process.env.JWT_USER_ACCESS_SECRET_KEY,
-            expiresIn: Number(process.env.JWT_ACCESS_EXPIRY),
+            secret: this.jwtConfiguration.user.access_secret,
+            expiresIn: Number(this.jwtConfiguration.expires.access),
           });
 
     const Refresh_token =user.role==='admin'?
     
     
     await this.jwtservice.sign(payload, {
-      secret: process.env.JWT_ADMIN_REFRESH_SECRET,
-      expiresIn: Number(process.env.JWT_REFRESH_EXPIRY),
+      secret: this.jwtConfiguration.admin.refresh_secret,
+      expiresIn: Number(this.jwtConfiguration.expires.refresh),
     }):
       await this.jwtservice.sign(payload, {
-      secret: process.env.JWT_USER_REFRESH_SECRET,
-      expiresIn: Number(process.env.JWT_REFRESH_EXPIRY),
+      secret: this.jwtConfiguration.user.refresh_secret,
+      expiresIn: Number(this.jwtConfiguration.expires.refresh),
     })
 
    
@@ -98,8 +105,8 @@ export class AuthService {
 
     const refreshSecret =
       role === 'admin'
-        ? process.env.JWT_ADMIN_REFRESH_SECRET
-        : process.env.JWT_USER_REFRESH_SECRET;
+        ? this.jwtConfiguration.admin.refresh_secret
+        : this.jwtConfiguration.user.refresh_secret;
 let payload
   try {
    payload = this.jwtservice.verify(refresh_token, {
@@ -111,13 +118,14 @@ let payload
 
     const accessSecret =
       role === 'admin'
-        ? process.env.JWT_ADMIN_ACCESS_SECRET_KEY
-        : process.env.JWT_USER_ACCESS_SECRET_KEY;
+        ? this.jwtConfiguration.admin.access_secret
+        : this.jwtConfiguration.user.access_secret;
 
     const newRefreshSecret =
       role === 'admin'
-        ? process.env.JWT_ADMIN_REFRESH_SECRET
-        : process.env.JWT_USER_REFRESH_SECRET;
+        ? this.jwtConfiguration.admin.refresh_secret
+        : this.jwtConfiguration.user.refresh_secret;
+
 
     const newPayload = {
       sub: payload.sub,
@@ -127,12 +135,13 @@ let payload
 
     const newAccessToken = this.jwtservice.sign(newPayload, {
       secret: accessSecret,
-      expiresIn: Number(process.env.JWT_ACCESS_EXPIRY),
+      expiresIn: Number(this.jwtConfiguration.expires.access
+),
     });
 
     const newRefreshToken = this.jwtservice.sign(newPayload, {
       secret: newRefreshSecret,
-      expiresIn: Number(process.env.JWT_REFRESH_EXPIRY),
+      expiresIn: Number(this.jwtConfiguration.expires.refresh),
     });
 
     return {

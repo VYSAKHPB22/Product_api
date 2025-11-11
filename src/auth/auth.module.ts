@@ -20,8 +20,8 @@ import { adminUserSchema } from 'src/Entity/admin-users.schema';
    JwtModule.registerAsync({
       inject: [jwtConfig.KEY],
       useFactory: (jwtConfiguration: ConfigType<typeof jwtConfig>) => ({
-        secret: jwtConfiguration.access.secret,
-        signOptions: { expiresIn: jwtConfiguration.access.expiresIn as any, },
+        secret: jwtConfiguration.default.secret,
+        signOptions: { expiresIn: jwtConfiguration.default.expiry as any, },
       }),
     }),
 
